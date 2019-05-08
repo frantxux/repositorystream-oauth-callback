@@ -224,6 +224,14 @@ test_expect_success 'refs/rewritten/* is worktree-local' '
 	test_cmp_rev HEAD "$(cat wt/b)"
 '
 
+test_expect_success '--abort cleans up refs/rewritten' '
+	git checkout -b abort-cleans-refs-rewritten H &&
+	GIT_SEQUENCE_EDITOR="echo break >>" git rebase -ir @^ &&
+	git rev-parse --verify refs/rewritten/onto &&
+	git rebase --abort &&
+	test_must_fail git rev-parse --verify refs/rewritten/onto
+'
+
 test_expect_success 'post-rewrite hook and fixups work for merges' '
 	git checkout -b post-rewrite &&
 	test_commit same1 &&
