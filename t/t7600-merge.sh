@@ -867,4 +867,18 @@ test_expect_success EXECKEEPSPID 'killed merge can be completed with --continue'
 	verify_parents $c0 $c1
 '
 
+test_expect_success 'merge --quit' '
+	git reset --hard side &&
+	test_must_fail git -c rerere.enabled=true merge master &&
+	test_path_is_file .git/MERGE_HEAD &&
+	test_path_is_file .git/MERGE_MODE &&
+	test_path_is_file .git/MERGE_MSG &&
+	test_path_is_file .git/MERGE_RR &&
+	git merge --quit &&
+	test_path_is_missing .git/MERGE_HEAD &&
+	test_path_is_missing .git/MERGE_MODE &&
+	test_path_is_missing .git/MERGE_MSG &&
+	test_path_is_missing .git/MERGE_RR
+'
+
 test_done
