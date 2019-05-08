@@ -239,7 +239,7 @@ my ($validate, $confirm);
 my (@suppress_cc);
 my ($auto_8bit_encoding);
 my ($compose_encoding);
-my $target_xfer_encoding = 'auto';
+my ($target_xfer_encoding);
 
 my ($debug_net_smtp) = 0;		# Net::SMTP, see send_message()
 
@@ -258,28 +258,28 @@ my %config_bool_settings = (
 );
 
 my %config_settings = (
-    "smtpserver" => \$smtp_server,
-    "smtpserverport" => \$smtp_server_port,
-    "smtpserveroption" => \@smtp_server_options,
-    "smtpuser" => \$smtp_authuser,
-    "smtppass" => \$smtp_authpass,
-    "smtpdomain" => \$smtp_domain,
-    "smtpauth" => \$smtp_auth,
-    "smtpbatchsize" => \$batch_size,
-    "smtprelogindelay" => \$relogin_delay,
-    "to" => \@initial_to,
-    "tocmd" => \$to_cmd,
-    "cc" => \@initial_cc,
-    "cccmd" => \$cc_cmd,
-    "aliasfiletype" => \$aliasfiletype,
-    "bcc" => \@bcclist,
-    "suppresscc" => \@suppress_cc,
-    "envelopesender" => \$envelope_sender,
-    "confirm"   => \$confirm,
-    "from" => \$sender,
-    "assume8bitencoding" => \$auto_8bit_encoding,
-    "composeencoding" => \$compose_encoding,
-    "transferencoding" => \$target_xfer_encoding,
+    "smtpserver" => [\$smtp_server],
+    "smtpserverport" => [\$smtp_server_port],
+    "smtpserveroption" => [\@smtp_server_options],
+    "smtpuser" => [\$smtp_authuser],
+    "smtppass" => [\$smtp_authpass],
+    "smtpdomain" => [\$smtp_domain],
+    "smtpauth" => [\$smtp_auth],
+    "smtpbatchsize" => [\$batch_size],
+    "smtprelogindelay" => [\$relogin_delay],
+    "to" => [\@initial_to],
+    "tocmd" => [\$to_cmd],
+    "cc" => [\@initial_cc],
+    "cccmd" => [\$cc_cmd],
+    "aliasfiletype" => [\$aliasfiletype],
+    "bcc" => [\@bcclist],
+    "suppresscc" => [\@suppress_cc],
+    "envelopesender" => [\$envelope_sender],
+    "confirm"   => [\$confirm],
+    "from" => [\$sender],
+    "assume8bitencoding" => [\$auto_8bit_encoding],
+    "composeencoding" => [\$compose_encoding],
+    "transferencoding" => [\$target_xfer_encoding, 'auto'],
 );
 
 my %config_path_settings = (
@@ -423,7 +423,7 @@ sub read_config {
 	}
 
 	foreach my $setting (keys %config_settings) {
-		my $target = $config_settings{$setting};
+		my $target = $config_settings{$setting}->[0];
 		next if $setting eq "to" and defined $no_to;
 		next if $setting eq "cc" and defined $no_cc;
 		next if $setting eq "bcc" and defined $no_bcc;
@@ -456,6 +456,16 @@ read_config("sendemail");
 # fall back on builtin bool defaults
 foreach my $setting (values %config_bool_settings) {
 	${$setting->[0]} = $setting->[1] unless (defined (${$setting->[0]}));
+}
+
+# fall back to builtin defaults
+while (my ($name, $setting) = each %config_settings) {
+	next unless @$setting == 2;
+
+	my ($target, $default) = @$setting;
+	if (ref($target) eq "SCALAR") {
+		$$target = $default unless defined $$target;
+	} # elsif ... for other types later.
 }
 
 # 'default' encryption is none -- this only prevents a warning
