@@ -231,7 +231,7 @@ my ($validate, $confirm);
 my (@suppress_cc);
 my ($auto_8bit_encoding);
 my ($compose_encoding);
-my $target_xfer_encoding = 'auto';
+my ($target_xfer_encoding);
 
 my ($debug_net_smtp) = 0;		# Net::SMTP, see send_message()
 
@@ -271,7 +271,7 @@ my %config_settings = (
     "from" => [\$sender],
     "assume8bitencoding" => [\$auto_8bit_encoding],
     "composeencoding" => [\$compose_encoding],
-    "transferencoding" => [\$target_xfer_encoding],
+    "transferencoding" => [\$target_xfer_encoding, 'auto'],
 );
 
 my %config_path_settings = (
